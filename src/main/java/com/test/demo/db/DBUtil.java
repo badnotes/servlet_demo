@@ -1,6 +1,6 @@
 package com.test.demo.db;
 
-import com.fst.cache.CacheManager;
+import com.test.demo.cache.CacheManager;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
@@ -135,7 +135,7 @@ public class DBUtil {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T get_cache(Class<T> beanClass, String cache, Serializable key, String sql, Object...params)  {
-        T obj = (T)CacheManager.get(cache, key);
+        T obj = (T) CacheManager.get(cache, key);
         if(obj == null){
             obj = get(beanClass, sql, params);
             CacheManager.set(cache, key, (Serializable)obj);

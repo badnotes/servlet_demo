@@ -3,17 +3,11 @@ package com.test.demo.servlet;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.fst.context.user.UserManager;
-import com.fst.utils.DateUtil;
-import com.fst.web.filter.AuthorityKeys;
-import com.fst.web.utils.Action;
-import com.fst.web.utils.Keys;
-import com.fst.web.utils.RequestUtil;
-import com.fst.web.utils.Result;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import org.apache.commons.beanutils.MethodUtils;
+import com.test.demo.utils.DateUtil;
+import com.test.demo.utils.RequestUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -25,8 +19,6 @@ import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,16 +44,16 @@ public class DispatchServlet extends HttpServlet{
     @Inject
     private Injector injector;
     @Inject
-    private UserManager userManager;
+    //private UserManager userManager;
 
 	@Override
 	public void doGet(HttpServletRequest request,HttpServletResponse response){
-		doProcess(request, response,false);
+		//doProcess(request, response,false);
     }
 
 	@Override
 	public void doPost(HttpServletRequest request,HttpServletResponse response){
-		doProcess(request, response,true);
+		//doProcess(request, response,true);
 	}
 
     /**
@@ -73,7 +65,7 @@ public class DispatchServlet extends HttpServlet{
      * @param request: count
      * @param response
      */
-	public void doProcess(HttpServletRequest request,HttpServletResponse response,boolean ispost){
+	/*public void doProcess(HttpServletRequest request,HttpServletResponse response,boolean ispost){
 
         // start time
         long startTime = System.currentTimeMillis();
@@ -187,11 +179,11 @@ public class DispatchServlet extends HttpServlet{
             e.printStackTrace();
             newResponse(startTime,request, response, Result.ERROR_UNKNOWN.toResult());
         }
-    }
+    }*/
 
     public void errorNoMethod(HttpServletRequest request,HttpServletResponse response,String error){
         logger.info(error + " is error ... ");
-        newResponse(System.currentTimeMillis(),request, response, Result.ERROR_NO_METHOD.toResult());
+        //newResponse(System.currentTimeMillis(),request, response, Result.ERROR_NO_METHOD.toResult());
     }
 
 	/**

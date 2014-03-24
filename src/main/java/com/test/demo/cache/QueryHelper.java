@@ -1,8 +1,8 @@
 package com.test.demo.cache;
 
 
-import com.fst.db.DBException;
-import com.fst.db.DBManager;
+import com.test.demo.db.DBException;
+import com.test.demo.db.DBManager;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;

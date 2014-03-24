@@ -185,7 +185,7 @@ public class FileUtil {
 		}
 	}
 
-    public static void base64File(String context,String targetFile) throws IOException {
+    /*public static void base64File(String context,String targetFile) throws IOException {
 		//byte[] bytefs = org.apache.mina.util.Base64.decodeBase64(context.getBytes());
 		byte[] bytes = com.fst.web.utils.Base64.decodeBase64(context.getBytes());
 		File file = new File(targetFile);
@@ -198,16 +198,16 @@ public class FileUtil {
             out.write(aByte);
         }
 		out.close();
-	}
+	}*/
 
 
-	public static String base64String (String fileName){
+	/*public static String base64String (String fileName){
 		File file = new File(fileName);
 		if(!file.exists()){
 			return null;
 		}
 		return Base64.encodeFromFile(fileName);
-	}
+	}*/
 
 	/**
 	 *
