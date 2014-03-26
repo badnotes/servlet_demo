@@ -1,4 +1,4 @@
-package com.test.demo.servlet;
+package com.test.demo.servlet.base;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @ClassName: 	ServletApi
+ * @ClassName: 	Method
  * @Description:api
  * @author 		xinge imxingge@gmail.com
  * @date 		2013-3-26 上午11:41:08
@@ -14,12 +14,8 @@ import java.lang.annotation.Target;
  */
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ServletApi {
+public @interface Method {
 
-	boolean login() default true;
-
-	MethodType method() default MethodType.ALL;
-
-	float minVersion() default 0.0f;
+	MethodType value() default MethodType.GET;
 
 }

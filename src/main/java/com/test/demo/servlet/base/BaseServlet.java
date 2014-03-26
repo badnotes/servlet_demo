@@ -1,9 +1,9 @@
-package com.test.demo.servlet;
+package com.test.demo.servlet.base;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.test.demo.utils.Result;
+import com.ada.datapush.utils.Result;
 import org.apache.commons.beanutils.MethodUtils;
 
 import javax.servlet.ServletException;
@@ -25,12 +25,12 @@ public abstract class BaseServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        process(req,resp);
+        process(req,resp,MethodType.GET);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        process(req,resp);
+        process(req,resp,MethodType.POST);
     }
 
     @Override
@@ -38,7 +38,7 @@ public abstract class BaseServlet extends HttpServlet {
         super.init();
     }
 
-    public void process(HttpServletRequest request,HttpServletResponse response){
+    public void process(HttpServletRequest request,HttpServletResponse response, MethodType mType){
         String uri = request.getRequestURI();
         String action = uri.substring(uri.lastIndexOf("/")+1);
         // find method
@@ -50,6 +50,20 @@ public abstract class BaseServlet extends HttpServlet {
             e.printStackTrace();
             response(request, response, Result.ERROR_NO_METHOD.toResult());
             return ;
+        }
+        if (method == null){
+            response(request, response, Result.ERROR_NO_METHOD.toResult());
+            return;
+        }
+        // 注解默认为get,为all是可以通过所有方法,其他标注是必须匹配才行
+        com.ada.datapush.servlet.base.Method m = method.getAnnotation(com.ada.datapush.servlet.base.Method.class);
+        if(m == null && mType != MethodType.GET){
+            response(request, response, Result.ERROR_NO_METHOD.toResult());
+            return;
+        }
+        if(m!=null && m.value()!=MethodType.ALL && m.value()!=mType){
+            response(request, response, Result.ERROR_NO_METHOD.toResult());
+            return;
         }
         // invoke servlet
         try {

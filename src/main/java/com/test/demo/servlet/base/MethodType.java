@@ -1,4 +1,4 @@
-package com.test.demo.servlet;
+package com.test.demo.servlet.base;
 
 /**
  * @ClassName: 	MethodType

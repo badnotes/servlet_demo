@@ -1,13 +1,13 @@
-package com.test.demo.servlet;
+package com.test.demo.servlet.base;
 
+import com.ada.datapush.utils.DateUtil;
+import com.ada.datapush.utils.RequestUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.test.demo.utils.DateUtil;
-import com.test.demo.utils.RequestUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -118,7 +118,7 @@ public class DispatchServlet extends HttpServlet{
             return ;
         }
         // check method
-        ServletApi anno = method.getAnnotation(ServletApi.class);
+        Method anno = method.getAnnotation(Method.class);
         if(anno != null && anno.method() != MethodType.ALL){
             if(anno.method() == MethodType.GET && ispost){
                 this.errorNoMethod(request, response,"method post");
