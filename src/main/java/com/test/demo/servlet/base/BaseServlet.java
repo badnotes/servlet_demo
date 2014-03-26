@@ -3,7 +3,7 @@ package com.test.demo.servlet.base;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.ada.datapush.utils.Result;
+import com.test.demo.utils.Result;
 import org.apache.commons.beanutils.MethodUtils;
 
 import javax.servlet.ServletException;
@@ -56,7 +56,7 @@ public abstract class BaseServlet extends HttpServlet {
             return;
         }
         // 注解默认为get,为all是可以通过所有方法,其他标注是必须匹配才行
-        com.ada.datapush.servlet.base.Method m = method.getAnnotation(com.ada.datapush.servlet.base.Method.class);
+        com.test.demo.servlet.base.Method m = method.getAnnotation(com.test.demo.servlet.base.Method.class);
         if(m == null && mType != MethodType.GET){
             response(request, response, Result.ERROR_NO_METHOD.toResult());
             return;

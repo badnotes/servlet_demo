@@ -1,13 +1,13 @@
 package com.test.demo.servlet.base;
 
-import com.ada.datapush.utils.DateUtil;
-import com.ada.datapush.utils.RequestUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
+import com.test.demo.utils.DateUtil;
+import com.test.demo.utils.RequestUtil;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
@@ -195,7 +195,7 @@ public class DispatchServlet extends HttpServlet{
 			pw = response.getWriter();
             // Object to json by fastJson  JSON.toJSONStringZ
 			String strValue = JSON.toJSONString(obj, SerializeConfig.getGlobalInstance(), SerializerFeature.WriteNullListAsEmpty);
-            Long uid = RequestUtil.getLong(request,"uid", 0L);
+            Long uid = RequestUtil.getLong(request, "uid", 0L);
 			pw.write(strValue);
             // end time
             long endTime = System.currentTimeMillis();

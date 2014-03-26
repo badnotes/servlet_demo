@@ -1,21 +1,38 @@
 package com.test.demo.servlet;
 
+
 import com.google.inject.Singleton;
+import com.test.demo.servlet.base.BaseServlet;
+import com.test.demo.servlet.base.Method;
+import com.test.demo.servlet.base.MethodType;
 import com.test.demo.utils.RequestUtil;
+import com.test.demo.utils.Result;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * hello
+ * hello servlet
  * User: xinge
- * Date: 14-3-17
+ * Date: 14-3-25
  * Time: pm 10:08
  */
 @Singleton
 public class HelloServlet extends BaseServlet {
 
-    public Object test(HttpServletRequest request) {
+    public Object testGet(HttpServletRequest request) {
         String name = RequestUtil.getString(request, "name","anonymous user");
-        return "hi," + name;
+        return Result.build(Result.SUCCESS, "get," + name);
+    }
+
+    @Method(MethodType.POST)
+    public Object testPost(HttpServletRequest request) {
+        String name = RequestUtil.getString(request, "name", "anonymous user");
+        return Result.build(Result.SUCCESS,"post," + name);
+    }
+
+    @Method(MethodType.ALL)
+    public Object testAll(HttpServletRequest request) {
+        String name = RequestUtil.getString(request, "name","anonymous user");
+        return Result.build(Result.SUCCESS,"all," + name);
     }
 }
