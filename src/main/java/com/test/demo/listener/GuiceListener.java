@@ -7,7 +7,7 @@ import com.google.inject.Module;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.test.demo.filter.EncodingFilter;
-import com.test.demo.servlet.HelloServlet;
+import com.test.demo.servlet.base.DispatchServlet;
 
 import javax.servlet.ServletContextEvent;
 
@@ -30,8 +30,8 @@ public class GuiceListener extends GuiceServletContextListener{
                 // filter
                 filter("/*").through(EncodingFilter.class);
                 // servlet
-                //serve("/*").with(DispatchServlet.class);
-                serve("/hello/hi/*").with(HelloServlet.class);
+                serve("/*").with(DispatchServlet.class);
+                //serve("/hello/hi/*").with(HelloServlet.class);
 
             }
         });

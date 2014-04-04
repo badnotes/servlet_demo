@@ -101,4 +101,8 @@ public abstract class BaseServlet extends HttpServlet {
             }
         }
     }
+
+    public Object doProcess(HttpServletRequest request, HttpServletResponse response){
+        return null;
+    }
 }

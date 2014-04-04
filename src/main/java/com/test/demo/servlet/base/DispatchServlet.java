@@ -8,19 +8,22 @@ import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.test.demo.utils.DateUtil;
 import com.test.demo.utils.RequestUtil;
+import com.test.demo.utils.Result;
 import org.apache.log4j.Logger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.*;
 
 /**
  * @ClassName: 	DispatchServlet
@@ -34,26 +37,95 @@ public class DispatchServlet extends HttpServlet{
 
 	/**
 	 * serialVersionUID:
-	 *
 	 * @since 1.0.0
 	 */
-
 	private static final long serialVersionUID = -2696929348482708541L;
-    private static final String PACKAGE_NAME = "com.fst.servlet.";
+    private static final String PACKAGE_NAME = "com.test.demo.servlet";
+    private final Map<String,BaseServlet> servletMap;
+    private final Map<String, java.lang.reflect.Method> methodMap;
     private static final Logger logger = Logger.getLogger(DispatchServlet.class);
     @Inject
     private Injector injector;
-    @Inject
-    //private UserManager userManager;
+
+    DispatchServlet() {
+        servletMap = new HashMap<String, BaseServlet>();
+        methodMap = new HashMap<String, Method>();
+        List<Class<?>> clazzList = new ArrayList<Class<?>>();
+        try {
+            Enumeration<URL> urls = Thread.currentThread().getContextClassLoader().getResources(PACKAGE_NAME.replace(".", "/"));
+            while ( urls.hasMoreElements()){
+                URL url = urls.nextElement();
+                if(url != null){
+                    String protocol = url.getProtocol();
+                    if("file".equals(protocol)){
+                        String uPath = url.getPath();
+                        loadClazzList(clazzList, uPath, PACKAGE_NAME);
+                    }
+                }
+            }
+            for(Class<?> clazz: clazzList){
+                BaseServlet instance = (BaseServlet)clazz.newInstance();
+                Path annotation = clazz.getAnnotation(Path.class);
+                if (annotation != null && annotation.value() != null){
+                    Method[] methods = clazz.getMethods();
+                    for (Method method: methods){
+                        Path anno = method.getAnnotation(Path.class);
+                        if(anno != null && anno.value() != null){
+                            servletMap.put(annotation.value()+anno.value(),instance);
+                            methodMap.put(annotation.value()+anno.value(),method);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void loadClazzList(List<Class<?>> clazzList, String uPath, String packageName){
+        File packageDir = new File(uPath);
+        if(packageDir.isDirectory()){
+            getSubpackageClasses(clazzList,packageDir,packageName);
+        }
+    }
+
+    private static void getSubpackageClasses(List<Class<?>> clazzList, File packageDir, String loadPackage) {
+        File[] files = packageDir.listFiles();
+        if(files == null){
+            return;
+        }
+        for( File file: files){ // 只处理 packageName 当前目录
+            if(file.isDirectory()){
+                //String subPackage = loadPackage + "." + file;
+                //getSubpackageClasses(clazzList, packageDir, subPackage);
+            }else if(file.isFile() && file.getName().endsWith(".class")) {
+                String fileName = file.getName();
+                String className = loadPackage + "." + fileName.substring(0,fileName.indexOf("."));
+                try {
+                    Class<?> clazz = Class.forName(className);
+                    if(clazz.getSuperclass().equals(BaseServlet.class)){ // instance of BaseServlet
+                        clazzList.add(clazz);
+                    }
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 	@Override
 	public void doGet(HttpServletRequest request,HttpServletResponse response){
-		//doProcess(request, response,false);
+		doProcess(request, response,false);
     }
 
 	@Override
 	public void doPost(HttpServletRequest request,HttpServletResponse response){
-		//doProcess(request, response,true);
+		doProcess(request, response,true);
 	}
 
     /**
@@ -65,125 +137,46 @@ public class DispatchServlet extends HttpServlet{
      * @param request: count
      * @param response
      */
-	/*public void doProcess(HttpServletRequest request,HttpServletResponse response,boolean ispost){
+	public void doProcess(HttpServletRequest request,HttpServletResponse response,boolean isPost){
 
         // start time
         long startTime = System.currentTimeMillis();
 
         dumpParams(request);
 
-        // check auth
-		String auth = RequestUtil.getString(request, Keys.AUTH);
-		if(auth == null || !AuthorityKeys.isExist(auth)){
-            this.errorNoMethod(request, response,"auth");
-			return ;
-		}
-		// op convert to action
-		Integer op = RequestUtil.getInteger(request, Keys.ACTION_OP);
-		if(op == null){
-            errorNoMethod(request, response,"op");
-			return ;
-		}
-        Action action = Action.findAction(op); // find method
-        if(action == null){
-            this.errorNoMethod(request, response,"action");
-            return ;
+        String uri = request.getRequestURI().replaceAll("/+", "/");
+        if(uri.endsWith("/")) {
+            uri = uri.substring(0, uri.length() - 1);
         }
-        // action convert to servlet
-        String servletName = PACKAGE_NAME+action.getModel();
-        BaseServlet servlet = null;
-        try {
-            servlet = (BaseServlet)injector.getInstance(Class.forName(servletName));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+
+        BaseServlet baseServlet = null;
+        if(servletMap.containsKey(uri)){
+            baseServlet = servletMap.get(uri);
         }
-        if(servlet == null){
-            this.errorNoMethod(request, response,"servlet");
-            return;
+        Method method = null;
+        if(methodMap.containsKey(uri)){
+            method = methodMap.get(uri);
         }
-        // find method
-        Method method;
-        try {
-            method = MethodUtils.getMatchingAccessibleMethod(servlet.getClass(), action.getMethod(),
-                    new Class[]{
-                            HttpServletRequest.class, HttpServletResponse.class
-                    });
-        } catch (Exception e) {
-            e.printStackTrace();
-            this.errorNoMethod(request, response,"method exception");
-            return ;
-        }
-        if(method == null){
-            this.errorNoMethod(request, response,"method null ");
-            return ;
-        }
-        // check method
-        Method anno = method.getAnnotation(Method.class);
-        if(anno != null && anno.method() != MethodType.ALL){
-            if(anno.method() == MethodType.GET && ispost){
-                this.errorNoMethod(request, response,"method post");
-                return ;
-            }
-            if(anno.method() == MethodType.POST && !ispost){
-                this.errorNoMethod(request, response,"method get");
-                return ;
-            }
-        }
-        Long uid = RequestUtil.getLong(request, Keys.ACTION_UID);
-        // check login status
-        if(anno == null || anno.login()){
-            String session = RequestUtil.getString(request, Keys.ACTION_SESSION);
-            if(uid == null || session == null){
-                newResponse(startTime,request, response, Result.ERROR_PARAMS.toResult());
-                return;
-            }
-            if(!userManager.contains(uid) || !session.trim().equals(userManager.get(uid).getSession())){
-                newResponse(startTime,request, response, Result.ERROR_SESSION.toResult());
-                logger.info("No this session .. ");
-                return;
-            }
-        }
-        // add user to online list
-        if(uid != null){
-            userManager.update(uid);
-        }
-        // check params
-        Integer page = RequestUtil.getInteger(request, "page");
-        Integer count = RequestUtil.getInteger(request,"count");
-        if(page != null && page<1){
-            newResponse(startTime,request, response, Result.ERROR_PARAMS.toResult("page is too small."));
-            return;
-        }
-        if(count != null && count>500){
-            newResponse(startTime,request, response, Result.ERROR_PARAMS.toResult("count is too large."));
+        if(baseServlet == null || method == null){
+            errorNoMethod(request,response,"no such method");
             return;
         }
         // invoke servlet
         try {
-            Object res = servlet.doProcess(request,response,action.getMethod());
+            Object res = method.invoke(baseServlet,request);
             if(res == null){
                 res = Result.ERROR_NO_RESULT.toResult();
             }
             newResponse(startTime,request, response, res);
-
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            newResponse(startTime,request, response, Result.ERROR_NO_METHOD.toResult());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-            newResponse(startTime,request, response, Result.ERROR_ACCESS.toResult());
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            newResponse(startTime,request, response, Result.ERROR_INVOKE.toResult());
-        } catch (Exception e) {
+        }catch (Exception e) {
             e.printStackTrace();
             newResponse(startTime,request, response, Result.ERROR_UNKNOWN.toResult());
         }
-    }*/
+    }
 
     public void errorNoMethod(HttpServletRequest request,HttpServletResponse response,String error){
         logger.info(error + " is error ... ");
-        //newResponse(System.currentTimeMillis(),request, response, Result.ERROR_NO_METHOD.toResult());
+        newResponse(System.currentTimeMillis(),request, response, Result.ERROR_NO_METHOD.toResult());
     }
 
 	/**
@@ -244,7 +237,7 @@ public class DispatchServlet extends HttpServlet{
         sb.append("#startTime:").append(startTime);
         sb.append("#endTime:").append(endTime);
         sb.append("#duration:").append(endTime-startTime);
-        logger.info("#######"+ DateUtil.long2Date(System.currentTimeMillis())+sb.toString()+" >>> result:"+result);
+        logger.info("#######" + DateUtil.long2Date(System.currentTimeMillis()) + sb.toString() + " >>> result:" + result);
     }
 
     public static Object setResult(HttpServletRequest request,Object object){
