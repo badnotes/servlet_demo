@@ -71,8 +71,10 @@ public class DispatchServlet extends HttpServlet{
                     for (Method method: methods){
                         Path anno = method.getAnnotation(Path.class);
                         if(anno != null && anno.value() != null){
-                            servletMap.put(annotation.value()+anno.value(),instance);
-                            methodMap.put(annotation.value()+anno.value(),method);
+                            String s = trimPath(annotation.value());
+                            String m = trimPath(anno.value());
+                            servletMap.put(s + m,instance);
+                            methodMap.put(s + m,method);
                         }
                     }
                 }
@@ -85,6 +87,14 @@ public class DispatchServlet extends HttpServlet{
             e.printStackTrace();
         }
 
+    }
+
+    private static String trimPath(String path){
+        String p = path.replaceAll("/+", "/");
+        if(p.length() > 1 && p.endsWith("/")) {
+            return p.substring(0, p.length() - 1);
+        }
+        return p;
     }
 
     private static void loadClazzList(List<Class<?>> clazzList, String uPath, String packageName){
@@ -144,18 +154,16 @@ public class DispatchServlet extends HttpServlet{
 
         dumpParams(request);
 
-        String uri = request.getRequestURI().replaceAll("/+", "/");
-        if(uri.endsWith("/")) {
-            uri = uri.substring(0, uri.length() - 1);
-        }
+        String uri = request.getRequestURI();
+        String path = trimPath(uri);
 
         BaseServlet baseServlet = null;
-        if(servletMap.containsKey(uri)){
-            baseServlet = servletMap.get(uri);
+        if(servletMap.containsKey(path)){
+            baseServlet = servletMap.get(path);
         }
         Method method = null;
-        if(methodMap.containsKey(uri)){
-            method = methodMap.get(uri);
+        if(methodMap.containsKey(path)){
+            method = methodMap.get(path);
         }
         if(baseServlet == null || method == null){
             errorNoMethod(request,response,"no such method");
